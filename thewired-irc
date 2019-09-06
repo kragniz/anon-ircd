@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+
+import asyncio
+
+clients = []
+
+async def handle(reader, writer):
+    clients.append(writer)
+    addr = writer.get_extra_info("peername")
+    print(f"{addr!r} connected")
+    while True:
+        data = await reader.readuntil(b'\r\n')
+        message = data.decode().strip()
+        print(message)
+        await writer.drain()
+    clients.remove(writer)
+    writer.close()
+
+
+async def main():
+    server = await asyncio.start_server(handle, "127.0.0.1", 6667)
+    addr = server.sockets[0].getsockname()
+    print(f"serving on {addr}")
+    async with server:
+        await server.serve_forever()
+
+
+asyncio.run(main())
