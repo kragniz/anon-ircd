@@ -4,14 +4,65 @@ import asyncio
 
 clients = []
 
+client_ident = "Anonymous!anon@localhost"
+
+
+def write(writer, string):
+    print(f"-> {string}")
+    writer.write(f"{string}\r\n".encode())
+
+
+def send_ping(writer):
+    write(writer, f"PING :001")
+
+
+def send_pong(writer, token):
+    write(writer, f"PONG {token}")
+
+
+def send_whois(writer):
+    write(writer, f":thewired 311 navi Anonymous Anonymous anon@localhost * :Anonymous")
+
+
+def send_welcome(writer):
+    write(writer, f":thewired 001 Anonymous :Welcome to The Wired")
+    write(writer, f":thewired 376 :Stay comfy")
+
+
+def send_notice(writer, channel, msg):
+    write(writer, f":thewired NOTICE {channel} :{msg}")
+
+
+def send_join(writer, channel):
+    write(writer, f":{client_ident} TOPIC {channel} :{channel}")
+    write(writer, f":{client_ident} JOIN :{channel}")
+    write(writer, f":thewired 353 Anonymous = {channel} :Anonymous")
+    send_notice(writer, channel, "there might be about 10 other people in this channel")
+
+
 async def handle(reader, writer):
     clients.append(writer)
     addr = writer.get_extra_info("peername")
     print(f"{addr!r} connected")
+    send_ping(writer)
     while True:
-        data = await reader.readuntil(b'\r\n')
+        data = await reader.readuntil(b"\r\n")
         message = data.decode().strip()
         print(message)
+        message_parts = message.split(" ")
+        if message.startswith("PING"):
+            if len(message_parts) > 1:
+                token = message_parts[1]
+                send_pong(writer, token)
+        elif message.startswith("USER"):
+            send_welcome(writer)
+        elif message.startswith("WHOIS"):
+            send_whois(writer)
+        elif message.startswith("JOIN"):
+            if len(message_parts) > 1:
+                channel = message_parts[1]
+                send_join(writer, channel)
+            send_whois(writer)
         await writer.drain()
     clients.remove(writer)
     writer.close()
