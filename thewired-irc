@@ -25,18 +25,21 @@ def send_whois(writer):
 
 
 def send_welcome(writer):
-    write(writer, f":thewired 001 Anonymous :Welcome to The Wired")
+    write(writer, f":thewired 001 You :Welcome to The Wired")
     write(writer, f":thewired 376 :Stay comfy")
 
 
 def send_notice(writer, channel, msg):
     write(writer, f":thewired NOTICE {channel} :{msg}")
 
+def send_privmsg(writer, channel, msg):
+    write(writer, f":{client_ident} PRIVMSG {channel} :{msg}")
+
 
 def send_join(writer, channel):
     write(writer, f":{client_ident} TOPIC {channel} :{channel}")
     write(writer, f":{client_ident} JOIN :{channel}")
-    write(writer, f":thewired 353 Anonymous = {channel} :Anonymous")
+    write(writer, f":thewired 353 You = {channel} :You Anonymous")
     send_notice(writer, channel, "there might be about 10 other people in this channel")
 
 
@@ -62,6 +65,12 @@ async def handle(reader, writer):
             if len(message_parts) > 1:
                 channel = message_parts[1]
                 send_join(writer, channel)
+            send_whois(writer)
+        elif message.startswith("PRIVMSG"):
+            if len(message_parts) > 2:
+                channel = message_parts[1]
+                message = message.split(":", 1)[1]
+                send_privmsg(writer, channel, message)
             send_whois(writer)
         await writer.drain()
     clients.remove(writer)
