@@ -66,12 +66,15 @@ async def handle(reader, writer):
         elif message.startswith("JOIN"):
             if len(message_parts) > 1:
                 channel = message_parts[1]
+                client.channels.add(channel)
                 client.send_join(channel)
         elif message.startswith("PRIVMSG"):
             if len(message_parts) > 2:
                 channel = message_parts[1]
                 message = message.split(":", 1)[1]
-                client.send_privmsg(channel, message)
+                for c in clients:
+                    if channel in c.channels and c != client:
+                        c.send_privmsg(channel, message)
         await writer.drain()
     clients.remove(client)
     writer.close()
