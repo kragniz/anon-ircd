@@ -15,16 +15,17 @@ cyrillic_capital_o = "О"
 
 exchange_regex = re.compile("you", re.I)
 
+
 def exchange(string):
     for match in regex.finditer(string):
-        location = match.start()+1
+        location = match.start() + 1
 
         if string[location] == "o":
             char = cyrillic_small_o
         else:
             char = cyrillic_capital_o
 
-        string = string[:location] + char + string[location+1:]
+        string = string[:location] + char + string[location + 1 :]
     return string
 
 
