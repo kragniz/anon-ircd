@@ -17,7 +17,7 @@ exchange_regex = re.compile("you", re.I)
 
 
 def exchange(string):
-    for match in re.finditer(string):
+    for match in exchange_regex.finditer(string):
         location = match.start() + 1
 
         if string[location] == "o":
