@@ -43,6 +43,9 @@ class Client:
         self.write(f":{self_client_ident} JOIN :{channel}")
         self.write(f":thewired 353 You = {channel} :You Anonymous")
 
+    def send_part(self, channel):
+        self.write(f":{self_client_ident} PART :{channel}")
+
 
 async def handle(reader, writer):
     client = Client(writer)
@@ -68,6 +71,11 @@ async def handle(reader, writer):
                 channel = message_parts[1]
                 client.channels.add(channel)
                 client.send_join(channel)
+        elif message.startswith("PART"):
+            if len(message_parts) > 1:
+                channel = message_parts[1]
+                client.channels.remove(channel)
+                client.send_part(channel)
         elif message.startswith("PRIVMSG"):
             if len(message_parts) > 2:
                 channel = message_parts[1]
