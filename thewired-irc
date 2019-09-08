@@ -74,46 +74,48 @@ async def handle(reader, writer):
     clients.append(client)
     addr = writer.get_extra_info("peername")
     print(f"{addr!r} connected")
-    client.send_ping()
-    while True:
-        data = await reader.readuntil(b"\r\n")
-        message = data.decode().strip()
-        print(message)
-        message_parts = message.split(" ")
-        if message.startswith("PING"):
-            if len(message_parts) > 1:
-                token = message_parts[1]
-                client.send_pong(token)
-        elif message.startswith("USER"):
-            client.send_welcome()
-            client.send_join("#random")
-        elif message.startswith("WHOIS"):
-            client.send_whois()
-        elif message.startswith("JOIN"):
-            if len(message_parts) > 1:
-                channel = message_parts[1]
-                client.send_join(channel)
-                clients_num = len([c for c in clients if channel in c.channels])
-                client.send_notice(
-                    channel,
-                    f"welcome to {channel}, there might be about {clients_num} people connected right now",
-                )
-        elif message.startswith("PART"):
-            if len(message_parts) > 1:
-                channel = message_parts[1]
-                client.channels.remove(channel)
-                client.send_part(channel)
-        elif message.startswith("PRIVMSG"):
-            if len(message_parts) > 2:
-                channel = message_parts[1]
-                message = message.split(":", 1)[1]
-                message = exchange(message)
-                for c in clients:
-                    if channel in c.channels and c != client:
-                        c.send_privmsg(channel, message)
-        await writer.drain()
-    clients.remove(client)
-    writer.close()
+    try:
+        client.send_ping()
+        while True:
+            data = await reader.readuntil(b"\r\n")
+            message = data.decode().strip()
+            print(message)
+            message_parts = message.split(" ")
+            if message.startswith("PING"):
+                if len(message_parts) > 1:
+                    token = message_parts[1]
+                    client.send_pong(token)
+            elif message.startswith("USER"):
+                client.send_welcome()
+                client.send_join("#random")
+            elif message.startswith("WHOIS"):
+                client.send_whois()
+            elif message.startswith("JOIN"):
+                if len(message_parts) > 1:
+                    channel = message_parts[1]
+                    client.send_join(channel)
+                    clients_num = len([c for c in clients if channel in c.channels])
+                    client.send_notice(
+                        channel,
+                        f"welcome to {channel}, there might be about {clients_num} people connected right now",
+                    )
+            elif message.startswith("PART"):
+                if len(message_parts) > 1:
+                    channel = message_parts[1]
+                    client.channels.remove(channel)
+                    client.send_part(channel)
+            elif message.startswith("PRIVMSG"):
+                if len(message_parts) > 2:
+                    channel = message_parts[1]
+                    message = message.split(":", 1)[1]
+                    message = exchange(message)
+                    for c in clients:
+                        if channel in c.channels and c != client:
+                            c.send_privmsg(channel, message)
+            await writer.drain()
+    finally:
+        clients.remove(client)
+        writer.close()
 
 
 async def irc_main():
