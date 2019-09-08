@@ -88,7 +88,7 @@ async def handle(reader, writer):
     writer.close()
 
 
-async def main():
+async def irc_main():
     server = await asyncio.start_server(handle, "127.0.0.1", 6667)
     addr = server.sockets[0].getsockname()
     print(f"serving on {addr}")
@@ -96,4 +96,6 @@ async def main():
         await server.serve_forever()
 
 
-asyncio.run(main())
+loop = asyncio.get_event_loop()
+loop.create_task(irc_main())
+loop.run_forever()
