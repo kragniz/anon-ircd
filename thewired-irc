@@ -54,7 +54,7 @@ class Client:
         self.write(f":thewired 376 :Stay comfy")
 
     def send_notice(self, channel, msg):
-        self.write(f":thewired NOTICE {channel} :{msg}")
+        self.write(f":admin NOTICE {channel} :{msg}")
 
     def send_privmsg(self, channel, msg):
         self.write(f":{anon_client_ident} PRIVMSG {channel} :{msg}")
@@ -93,6 +93,11 @@ async def handle(reader, writer):
             if len(message_parts) > 1:
                 channel = message_parts[1]
                 client.send_join(channel)
+                clients_num = len([c for c in clients if channel in c.channels])
+                client.send_notice(
+                    channel,
+                    f"welcome to {channel}, there might be about {clients_num} people connected right now",
+                )
         elif message.startswith("PART"):
             if len(message_parts) > 1:
                 channel = message_parts[1]
