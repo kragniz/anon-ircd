@@ -112,7 +112,7 @@ async def handle(reader, writer):
 
 
 async def irc_main():
-    server = await asyncio.start_server(handle, "127.0.0.1", 6667)
+    server = await asyncio.start_server(handle, "0.0.0.0", 6667)
     addr = server.sockets[0].getsockname()
     print(f"serving on {addr}")
     async with server:
