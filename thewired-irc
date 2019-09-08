@@ -60,6 +60,7 @@ class Client:
         self.write(f":{anon_client_ident} PRIVMSG {channel} :{msg}")
 
     def send_join(self, channel):
+        self.channels.add(channel)
         self.write(f":{anon_client_ident} TOPIC {channel} :{channel}")
         self.write(f":{self_client_ident} JOIN :{channel}")
         self.write(f":thewired 353 You = {channel} :You Anonymous")
@@ -85,12 +86,12 @@ async def handle(reader, writer):
                 client.send_pong(token)
         elif message.startswith("USER"):
             client.send_welcome()
+            client.send_join("#random")
         elif message.startswith("WHOIS"):
             client.send_whois()
         elif message.startswith("JOIN"):
             if len(message_parts) > 1:
                 channel = message_parts[1]
-                client.channels.add(channel)
                 client.send_join(channel)
         elif message.startswith("PART"):
             if len(message_parts) > 1:
