@@ -7,6 +7,26 @@ clients = []
 self_client_ident = "You!anon@localhost"
 anon_client_ident = "Anonymous!anon@localhost"
 
+# Rewrite "you"s in messages to minimise needless highlights.
+import re
+
+cyrillic_small_o = "о"
+cyrillic_capital_o = "О"
+
+exchange_regex = re.compile("you", re.I)
+
+def exchange(string):
+    for match in regex.finditer(string):
+        location = match.start()+1
+
+        if string[location] == "o":
+            char = cyrillic_small_o
+        else:
+            char = cyrillic_capital_o
+
+        string = string[:location] + char + string[location+1:]
+    return string
+
 
 class Client:
     def __init__(self, writer):
@@ -80,6 +100,7 @@ async def handle(reader, writer):
             if len(message_parts) > 2:
                 channel = message_parts[1]
                 message = message.split(":", 1)[1]
+                message = exchange(message)
                 for c in clients:
                     if channel in c.channels and c != client:
                         c.send_privmsg(channel, message)
