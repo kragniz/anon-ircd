@@ -34,15 +34,16 @@ class Client:
         self.writer = writer
         self.channels = set()
 
-    def write(self, string):
-        print(f"-> {string}")
+    def write(self, string, log=True):
+        if log:
+            print(f"-> {string}")
         self.writer.write(f"{string}\r\n".encode())
 
     def send_ping(self):
-        self.write(f"PING :001")
+        self.write(f"PING :001", log=False)
 
     def send_pong(self, token):
-        self.write(f"PONG {token}")
+        self.write(f"PONG {token}", log=False)
 
     def send_whois(self):
         self.write(
