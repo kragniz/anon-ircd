@@ -16,7 +16,7 @@ cyrillic_capital_o = "О"
 exchange_regex = re.compile("you", re.I)
 
 
-def exchange(string):
+def exchange(string: str) -> str:
     for match in exchange_regex.finditer(string):
         location = match.start() + 1
 
@@ -34,7 +34,7 @@ class Client:
         self.writer = writer
         self.channels = set()
 
-    def write(self, string, log=True):
+    def write(self, string: str, log=True):
         if log:
             print(f"-> {string}")
         self.writer.write(f"{string}\r\n".encode())
@@ -54,19 +54,19 @@ class Client:
         self.write(f":thewired 001 You :Welcome to The Wired")
         self.write(f":thewired 376 :Stay comfy")
 
-    def send_notice(self, channel, msg):
+    def send_notice(self, channel: str, msg: str):
         self.write(f":admin NOTICE {channel} :{msg}")
 
-    def send_privmsg(self, channel, msg):
+    def send_privmsg(self, channel: str, msg: str):
         self.write(f":{anon_client_ident} PRIVMSG {channel} :{msg}")
 
-    def send_join(self, channel):
+    def send_join(self, channel: str):
         self.channels.add(channel)
         self.write(f":{anon_client_ident} TOPIC {channel} :{channel}")
         self.write(f":{self_client_ident} JOIN :{channel}")
         self.write(f":thewired 353 You = {channel} :You Anonymous")
 
-    def send_part(self, channel):
+    def send_part(self, channel: str):
         self.write(f":{self_client_ident} PART :{channel}")
 
 
