@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import argparse
 import asyncio
+import ssl
 
 clients = []
 
@@ -127,6 +129,27 @@ async def irc_main():
         await server.serve_forever()
 
 
+async def ssl_irc_main(fullchain, privkey):
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    ssl_context.load_cert_chain(certfile=fullchain, keyfile=privkey)
+
+    server = await asyncio.start_server(handle, "0.0.0.0", 6697, ssl=ssl_context)
+    addr = server.sockets[0].getsockname()
+    print(f"serving ssl on {addr}")
+    async with server:
+        await server.serve_forever()
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--fullchain", default=None)
+parser.add_argument("--privkey", default=None)
+
+args = parser.parse_args()
+
 loop = asyncio.get_event_loop()
 loop.create_task(irc_main())
+
+if args.fullchain and args.privkey:
+    loop.create_task(ssl_irc_main(args.fullchain, args.privkey))
+
 loop.run_forever()
