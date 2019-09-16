@@ -16,6 +16,7 @@ cyrillic_small_o = "о"
 cyrillic_capital_o = "О"
 
 exchange_regex = re.compile("you", re.I)
+privmsg_regex = re.compile("PRIVMSG\s(?P<channel>.+?)\s:?(?P<msg>.+)")
 
 
 def exchange(string: str) -> str:
@@ -108,13 +109,16 @@ async def handle(reader, writer):
                     client.channels.remove(channel)
                     client.send_part(channel)
             elif message.startswith("PRIVMSG"):
-                if len(message_parts) > 2:
-                    channel = message_parts[1]
-                    message = message.split(":", 1)[1]
-                    message = exchange(message)
-                    for c in clients:
-                        if channel in c.channels and c != client:
-                            c.send_privmsg(channel, message)
+                if len(message_parts) >= 2:
+                    match = privmsg_regex.search(message)
+
+                    if match:
+                        channel = match.group("channel")
+                        msg = match.group("msg")
+                        msg = exchange(msg)
+                        for c in clients:
+                            if channel in c.channels and c != client:
+                                c.send_privmsg(channel, msg)
             await writer.drain()
     finally:
         clients.remove(client)
