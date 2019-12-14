@@ -1,8 +1,10 @@
+import re
+import prometheus_client
+
 self_client_ident = "You!anon@localhost"
 anon_client_ident = "Anonymous!anon@localhost"
 
 # Rewrite "you"s in messages to minimise needless highlights.
-import re
 
 cyrillic_small_o = "о"
 cyrillic_capital_o = "О"
@@ -64,6 +66,33 @@ class Client:
         self.write(f":{self_client_ident} PART :{channel}")
 
 
+def make_reloadable_collector(collector_cls, name, description):
+    collector = collector_cls(name, description, registry=None)
+
+    try:
+        for name in prometheus_client.REGISTRY._get_names(collector):
+            found_collector = prometheus_client.REGISTRY._names_to_collectors.pop(name)
+        prometheus_client.REGISTRY._collector_to_names.pop(found_collector)
+    except KeyError:
+        print(f"couldn't unregister {name}, is it a new collector?")
+    prometheus_client.REGISTRY.register(collector)
+    return collector
+
+
+MESSAGE_TIME = make_reloadable_collector(
+    prometheus_client.Summary,
+    "message_processing_seconds",
+    "Time spent processing message",
+)
+
+CLIENTS_CONNECTED = make_reloadable_collector(
+    prometheus_client.Gauge,
+    "clients_connected",
+    "Number of clients currently connected",
+)
+
+
+@MESSAGE_TIME.time()
 def process_message(data, client, clients):
     client = Client(client)
 
@@ -104,3 +133,7 @@ def process_message(data, client, clients):
                 for c in clients:
                     if channel in c.channels and c != client:
                         Client(c).send_privmsg(channel, msg)
+
+
+def reload(clients):
+    CLIENTS_CONNECTED.set(len(clients))

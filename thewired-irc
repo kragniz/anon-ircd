@@ -6,6 +6,8 @@ import importlib
 import signal
 import ssl
 
+from prometheus_client import start_http_server
+
 import reloadable
 
 clients = []
@@ -20,6 +22,7 @@ class Client:
 def reload():
     print("reloading reloadable.py")
     importlib.reload(reloadable)
+    reloadable.reload(clients)
 
 
 async def handle(reader, writer):
@@ -68,5 +71,7 @@ if args.fullchain and args.privkey:
     loop.create_task(ssl_irc_main(args.fullchain, args.privkey))
 
 loop.add_signal_handler(signal.SIGHUP, reload)
+
+start_http_server(8000)
 
 loop.run_forever()
