@@ -28,8 +28,7 @@ def reload():
 async def handle(reader, writer):
     client = Client(writer)
     clients.append(client)
-    addr = writer.get_extra_info("peername")
-    print(f"{addr!r} connected")
+    reloadable.on_client_connect(client)
     try:
         reloadable.Client(client).send_ping()
         while True:
@@ -37,6 +36,7 @@ async def handle(reader, writer):
             reloadable.process_message(data, client, clients)
             await writer.drain()
     finally:
+        reloadable.on_client_disconnect(client)
         clients.remove(client)
         writer.close()
 

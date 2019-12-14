@@ -135,5 +135,17 @@ def process_message(data, client, clients):
                         Client(c).send_privmsg(channel, msg)
 
 
+def on_client_connect(client):
+    addr = client.writer.get_extra_info("peername")
+    print(f"{addr!r} connected")
+    CLIENTS_CONNECTED.inc()
+
+
+def on_client_disconnect(client):
+    addr = client.writer.get_extra_info("peername")
+    print(f"{addr!r} disconnected")
+    CLIENTS_CONNECTED.dec()
+
+
 def reload(clients):
     CLIENTS_CONNECTED.set(len(clients))
