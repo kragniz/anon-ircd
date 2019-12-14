@@ -27,8 +27,10 @@ def exchange(string: str) -> str:
     return string
 
 
-def make_reloadable_collector(collector_cls, name, description):
-    collector = collector_cls(name, description, registry=None)
+def make_reloadable_collector(collector_cls, name, description, labelnames=None):
+    if labelnames is None:
+        labelnames = []
+    collector = collector_cls(name, description, labelnames, registry=None)
 
     try:
         for name in prometheus_client.REGISTRY._get_names(collector):
@@ -101,6 +103,10 @@ CLIENTS_CONNECTED = make_reloadable_collector(
     "Number of clients currently connected",
 )
 
+TOTAL_MSGS = make_reloadable_collector(
+    prometheus_client.Counter, "messages_total", "Number of messages sent", ["channel"],
+)
+
 
 @MESSAGE_TIME.time()
 def process_message(data, client, clients):
@@ -138,6 +144,7 @@ def process_message(data, client, clients):
 
             if match:
                 channel = match.group("channel")
+                TOTAL_MSGS.labels(channel=channel).inc()
                 msg = match.group("msg")
                 msg = exchange(msg)
                 for c in clients:
