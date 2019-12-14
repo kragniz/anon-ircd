@@ -148,7 +148,7 @@ def process_message(data, client, clients):
                 msg = match.group("msg")
                 msg = exchange(msg)
                 for c in clients:
-                    if channel in c.channels and c != client:
+                    if channel in c.channels and c != client.client:
                         Client(c).send_privmsg(channel, msg)
 
 
