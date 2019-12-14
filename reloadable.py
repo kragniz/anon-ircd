@@ -27,10 +27,29 @@ def exchange(string: str) -> str:
     return string
 
 
+def make_reloadable_collector(collector_cls, name, description):
+    collector = collector_cls(name, description, registry=None)
+
+    try:
+        for name in prometheus_client.REGISTRY._get_names(collector):
+            found_collector = prometheus_client.REGISTRY._names_to_collectors.pop(name)
+        prometheus_client.REGISTRY._collector_to_names.pop(found_collector)
+    except KeyError:
+        print(f"couldn't unregister {name}, is it a new collector?")
+    prometheus_client.REGISTRY.register(collector)
+    return collector
+
+
+MSG_SEND_TIME = make_reloadable_collector(
+    prometheus_client.Summary, "msg_send_seconds", "Time spent sending each messge",
+)
+
+
 class Client:
     def __init__(self, client):
         self.client = client
 
+    @MSG_SEND_TIME.time()
     def write(self, string: str, log=True):
         if log:
             print(f"-> {string}")
@@ -68,19 +87,6 @@ class Client:
 
     def send_server_notice(self, msg: str):
         self.write(f":admin NOTICE : {msg}")
-
-
-def make_reloadable_collector(collector_cls, name, description):
-    collector = collector_cls(name, description, registry=None)
-
-    try:
-        for name in prometheus_client.REGISTRY._get_names(collector):
-            found_collector = prometheus_client.REGISTRY._names_to_collectors.pop(name)
-        prometheus_client.REGISTRY._collector_to_names.pop(found_collector)
-    except KeyError:
-        print(f"couldn't unregister {name}, is it a new collector?")
-    prometheus_client.REGISTRY.register(collector)
-    return collector
 
 
 MESSAGE_TIME = make_reloadable_collector(
@@ -151,6 +157,11 @@ def on_client_disconnect(client):
     CLIENTS_CONNECTED.dec()
 
 
+VERSION = make_reloadable_collector(
+    prometheus_client.Info, "version", "Current version",
+)
+
+
 def reload(clients):
     CLIENTS_CONNECTED.set(len(clients))
     version = (
@@ -160,6 +171,8 @@ def reload(clients):
         .decode("utf-8")
         .strip()
     )
+
+    VERSION.info({"version": version})
 
     for client in clients:
         Client(client).send_server_notice(f"server updated to {version}")
