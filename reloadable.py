@@ -1,4 +1,5 @@
 import re
+import subprocess
 import prometheus_client
 
 self_client_ident = "You!anon@localhost"
@@ -64,6 +65,9 @@ class Client:
 
     def send_part(self, channel: str):
         self.write(f":{self_client_ident} PART :{channel}")
+
+    def send_server_notice(self, msg: str):
+        self.write(f":admin NOTICE : {msg}")
 
 
 def make_reloadable_collector(collector_cls, name, description):
@@ -149,3 +153,13 @@ def on_client_disconnect(client):
 
 def reload(clients):
     CLIENTS_CONNECTED.set(len(clients))
+    version = (
+        subprocess.check_output(
+            ["git", "describe", "--tags", "--always", "--dirty=-dev"]
+        )
+        .decode("utf-8")
+        .strip()
+    )
+
+    for client in clients:
+        Client(client).send_server_notice(f"server updated to {version}")
