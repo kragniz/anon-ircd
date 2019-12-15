@@ -182,4 +182,4 @@ def reload(clients):
     VERSION.info({"version": version})
 
     for client in clients:
-        Client(client).send_server_notice(f"server updated to {version}")
+        Client(client).send_server_notice(f"server updated to git {version}")
