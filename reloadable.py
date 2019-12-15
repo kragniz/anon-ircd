@@ -1,7 +1,6 @@
 import re
 import subprocess
 import prometheus_client
-import time
 
 self_client_ident = "You!anon@localhost"
 anon_client_ident = "Anonymous!anon@localhost"
@@ -54,7 +53,6 @@ class Client:
 
     @MSG_SEND_TIME.time()
     def write(self, string: str, log=True):
-        time.sleep(0.1)
         if log:
             print(f"-> {string}")
         self.client.writer.write(f"{string}\r\n".encode())
