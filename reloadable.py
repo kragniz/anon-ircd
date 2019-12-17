@@ -111,8 +111,15 @@ TOTAL_REQUESTS = make_reloadable_collector(
     prometheus_client.Counter, "requests_total", "Number of requests sent", ["type"],
 )
 
+TOTAL_REQUEST_ERRORS = make_reloadable_collector(
+    prometheus_client.Counter,
+    "request_error_total",
+    "Number of errors in processing requests",
+)
+
 
 @MESSAGE_TIME.time()
+@TOTAL_REQUEST_ERRORS.count_exceptions()
 def process_message(data, client, clients):
     client = Client(client)
 
