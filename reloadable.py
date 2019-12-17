@@ -151,7 +151,7 @@ def process_message(data, client, clients):
     elif request_type == "PART":
         if len(message_parts) > 1:
             channel = message_parts[1]
-            client.channels.remove(channel)
+            client.client.channels.remove(channel)
             client.send_part(channel)
     elif request_type == "PRIVMSG":
         if len(message_parts) >= 2:
