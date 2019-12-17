@@ -107,6 +107,10 @@ TOTAL_MSGS = make_reloadable_collector(
     prometheus_client.Counter, "messages_total", "Number of messages sent", ["channel"],
 )
 
+TOTAL_REQUESTS = make_reloadable_collector(
+    prometheus_client.Counter, "requests_total", "Number of requests sent", ["type"],
+)
+
 
 @MESSAGE_TIME.time()
 def process_message(data, client, clients):
@@ -115,16 +119,20 @@ def process_message(data, client, clients):
     message = data.decode().strip()
     print(message)
     message_parts = message.split(" ")
-    if message.startswith("PING"):
+
+    request_type = message_parts[0]
+
+    if request_type == "PING":
+        request_type = "PING"
         if len(message_parts) > 1:
             token = message_parts[1]
             client.send_pong(token)
-    elif message.startswith("USER"):
+    elif request_type == "USER":
         client.send_welcome()
         client.send_join("#random")
-    elif message.startswith("WHOIS"):
+    elif request_type == "WHOIS":
         client.send_whois()
-    elif message.startswith("JOIN"):
+    elif request_type == "JOIN":
         if len(message_parts) > 1:
             channel = message_parts[1]
             client.send_join(channel)
@@ -133,12 +141,12 @@ def process_message(data, client, clients):
                 channel,
                 f"welcome to {channel}, there might be about {clients_num} people connected right now",
             )
-    elif message.startswith("PART"):
+    elif request_type == "PART":
         if len(message_parts) > 1:
             channel = message_parts[1]
             client.channels.remove(channel)
             client.send_part(channel)
-    elif message.startswith("PRIVMSG"):
+    elif request_type == "PRIVMSG":
         if len(message_parts) >= 2:
             match = privmsg_regex.search(message)
 
@@ -150,6 +158,10 @@ def process_message(data, client, clients):
                 for c in clients:
                     if channel in c.channels and c != client.client:
                         Client(c).send_privmsg(channel, msg)
+    else:
+        request_type = "UNKNOWN"
+
+    TOTAL_REQUESTS.labels(type=request_type).inc()
 
 
 def on_client_connect(client):
