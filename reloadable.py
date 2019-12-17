@@ -52,7 +52,7 @@ class Client:
         self.client = client
 
     @MSG_SEND_TIME.time()
-    def write(self, string: str, log=True):
+    def write(self, string: str, log=False):
         if log:
             print(f"-> {string}")
         self.client.writer.write(f"{string}\r\n".encode())
@@ -124,7 +124,6 @@ def process_message(data, client, clients):
     client = Client(client)
 
     message = data.decode().strip()
-    print(message)
     message_parts = message.split(" ")
 
     request_type = message_parts[0]
@@ -166,6 +165,7 @@ def process_message(data, client, clients):
                     if channel in c.channels and c != client.client:
                         Client(c).send_privmsg(channel, msg)
     else:
+        print(f"UNKNOWN request: {message}")
         request_type = "UNKNOWN"
 
     TOTAL_REQUESTS.labels(type=request_type).inc()
