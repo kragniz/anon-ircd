@@ -11,7 +11,7 @@ from prometheus_client import start_http_server
 import reloadable
 
 clients = []
-current_version = "378ec5f"
+current_version = None
 
 
 class Client:

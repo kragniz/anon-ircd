@@ -71,7 +71,13 @@ class Client:
 
     def send_welcome(self):
         self.write(f":thewired 001 You :Welcome to The Wired")
-        self.write(f":thewired 376 :Stay comfy")
+        self.write(f":thewired 376 :")
+        self.write(f":thewired 376 :Rules:")
+        self.write(f":thewired 376 :  0. Stay comfy")
+        self.write(f":thewired 376 :")
+        self.write(
+            f":thewired 376 :Join #random for discussion, #dev for development chat"
+        )
 
     def send_admin_notice(self, channel: str, msg: str):
         self.write(f":Admin NOTICE {channel} :{msg}")
