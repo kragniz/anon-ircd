@@ -12,6 +12,7 @@ cyrillic_capital_o = "О"
 
 exchange_regex = re.compile("you", re.I)
 privmsg_regex = re.compile("PRIVMSG\s(?P<channel>.+?)\s:?(?P<msg>.+)")
+notice_regex = re.compile("NOTICE\s(?P<channel>.+?)\s:?(?P<msg>.+)")
 
 
 def exchange(string: str) -> str:
@@ -72,11 +73,14 @@ class Client:
         self.write(f":thewired 001 You :Welcome to The Wired")
         self.write(f":thewired 376 :Stay comfy")
 
-    def send_notice(self, channel: str, msg: str):
-        self.write(f":admin NOTICE {channel} :{msg}")
+    def send_admin_notice(self, channel: str, msg: str):
+        self.write(f":Admin NOTICE {channel} :{msg}")
 
     def send_privmsg(self, channel: str, msg: str):
         self.write(f":{anon_client_ident} PRIVMSG {channel} :{msg}")
+
+    def send_notice(self, channel: str, msg: str):
+        self.write(f":{anon_client_ident} NOTICE {channel} :{msg}")
 
     def send_join(self, channel: str):
         self.client.channels.add(channel)
@@ -88,7 +92,7 @@ class Client:
         self.write(f":{self_client_ident} PART :{channel}")
 
     def send_server_notice(self, msg: str):
-        self.write(f":admin NOTICE : {msg}")
+        self.write(f":Admin NOTICE : {msg}")
 
 
 MESSAGE_TIME = make_reloadable_collector(
@@ -143,7 +147,7 @@ def process_message(data, client, clients):
             channel = message_parts[1]
             client.send_join(channel)
             clients_num = len([c for c in clients if channel in c.channels])
-            client.send_notice(
+            client.send_admin_notice(
                 channel,
                 f"welcome to {channel}, there might be about {clients_num} people connected right now",
             )
@@ -164,6 +168,18 @@ def process_message(data, client, clients):
                 for c in clients:
                     if channel in c.channels and c != client.client:
                         Client(c).send_privmsg(channel, msg)
+    elif request_type == "NOTICE":
+        if len(message_parts) >= 2:
+            match = notice_regex.search(message)
+
+            if match:
+                channel = match.group("channel")
+                TOTAL_MSGS.labels(channel=channel).inc()
+                msg = match.group("msg")
+                msg = exchange(msg)
+                for c in clients:
+                    if channel in c.channels and c != client.client:
+                        Client(c).send_notice(channel, msg)
     else:
         print(f"UNKNOWN request: {message}")
         request_type = "UNKNOWN"
