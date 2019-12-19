@@ -204,17 +204,43 @@ VERSION = make_reloadable_collector(
 )
 
 
-def reload(clients):
+def reload(clients, current_version=None):
     CLIENTS_CONNECTED.set(len(clients))
     version = (
-        subprocess.check_output(
-            ["git", "describe", "--tags", "--always", "--dirty=-dev"]
-        )
+        subprocess.check_output(["git", "describe", "--tags", "--always", "--dirty="])
         .decode("utf-8")
         .strip()
     )
 
     VERSION.info({"version": version})
 
-    for client in clients:
-        Client(client).send_server_notice(f"server updated to git {version}")
+    if current_version is not None:
+        log = (
+            subprocess.check_output(
+                [
+                    "git",
+                    "log",
+                    "--date=relative",
+                    '--pretty=format:"%h %s (by %an, %ad)"',
+                    f"{current_version}..{version}",
+                ]
+            )
+            .decode("utf-8")
+            .strip()
+            .split("\n")
+        )
+
+        print(log)
+        log = [f"Server reloaded, new changes:"] + [
+            s.strip('"') for s in filter(None, log)
+        ]
+        print(list(filter(None, log)))
+        print(filter(None, log))
+        print(log)
+        for line in log:
+            print(line)
+            for c in clients:
+                if "#dev" in c.channels:
+                    Client(c).send_admin_notice("#dev", line)
+
+    return version
