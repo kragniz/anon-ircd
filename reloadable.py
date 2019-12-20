@@ -79,6 +79,10 @@ class Client:
         self.write(f":thewired 376 :Rules:")
         self.write(f":thewired 376 :  0. Stay comfy")
         self.write(f":thewired 376 :")
+        self.write(f":thewired 376 :Get the code from:")
+        self.write(f":thewired 376 :")
+        self.write(f":thewired 376 :  $ git clone https://git.sr.ht/~kragniz/anon-ircd")
+        self.write(f":thewired 376 :")
         self.write(
             f":thewired 376 :Join #random for discussion, #dev for development chat"
         )
