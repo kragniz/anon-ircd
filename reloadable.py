@@ -236,15 +236,10 @@ def reload(clients, current_version=None):
             .split("\n")
         )
 
-        print(log)
         log = [f"Server reloaded, new changes:"] + [
             s.strip('"') for s in filter(None, log)
         ]
-        print(list(filter(None, log)))
-        print(filter(None, log))
-        print(log)
         for line in log:
-            print(line)
             for c in clients:
                 if "#dev" in c.channels:
                     Client(c).send_admin_notice("#dev", line)
