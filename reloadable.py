@@ -255,6 +255,14 @@ def reload(clients, current_version=None):
 
     VERSION.info({"version": version})
 
+    checked_channels = set()
+    for client in clients:
+        for channel in client.channels:
+            if not channel in checked_channels:
+                clients_num = count_channel_members(channel, clients)
+                CHANNEL_MEMBERS.labels(channel=channel).set(clients_num)
+                checked_channels.add(channel)
+
     if current_version is not None:
         log = (
             subprocess.check_output(
