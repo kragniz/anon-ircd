@@ -161,10 +161,11 @@ def process_message(data, client, clients):
 
     elif request_type == "USER":
         client.send_welcome()
-        default_channel = "#random"
-        client.send_join(default_channel)
-        clients_num = count_channel_members(default_channel, clients)
-        CHANNEL_MEMBERS.labels(channel=default_channel).set(clients_num)
+        default_channels = {"#random", "#dev"}
+        for channel in default_channels:
+            client.send_join(channel)
+            clients_num = count_channel_members(channel, clients)
+            CHANNEL_MEMBERS.labels(channel=channel).set(clients_num)
 
     elif request_type == "WHOIS":
         client.send_whois()
