@@ -30,7 +30,7 @@ def reload():
 async def handle(reader, writer):
     client = Client(writer)
     clients.append(client)
-    reloadable.on_client_connect(client)
+    reloadable.on_client_connect(client, clients)
     try:
         reloadable.Client(client).send_ping()
         while True:
@@ -38,8 +38,8 @@ async def handle(reader, writer):
             reloadable.process_message(data, client, clients)
             await writer.drain()
     finally:
-        reloadable.on_client_disconnect(client)
         clients.remove(client)
+        reloadable.on_client_disconnect(client, clients)
         writer.close()
 
 

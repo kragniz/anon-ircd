@@ -52,6 +52,10 @@ class Client:
     def __init__(self, client):
         self.client = client
 
+    @property
+    def channels(self):
+        return self.client.channels
+
     @MSG_SEND_TIME.time()
     def write(self, string: str, log=False):
         if log:
@@ -113,6 +117,13 @@ CLIENTS_CONNECTED = make_reloadable_collector(
     "Number of clients currently connected",
 )
 
+CHANNEL_MEMBERS = make_reloadable_collector(
+    prometheus_client.Gauge,
+    "channel_members",
+    "Number of members of each channel",
+    ["channel"],
+)
+
 TOTAL_MSGS = make_reloadable_collector(
     prometheus_client.Counter, "messages_total", "Number of messages sent", ["channel"],
 )
@@ -126,6 +137,10 @@ TOTAL_REQUEST_ERRORS = make_reloadable_collector(
     "request_error_total",
     "Number of errors in processing requests",
 )
+
+
+def count_channel_members(channel, clients):
+    return len([c for c in clients if channel in c.channels])
 
 
 @MESSAGE_TIME.time()
@@ -145,23 +160,32 @@ def process_message(data, client, clients):
             client.send_pong(token)
     elif request_type == "USER":
         client.send_welcome()
-        client.send_join("#random")
+        default_channel = "#random"
+        client.send_join(default_channel)
+        clients_num = count_channel_members(default_channel, clients)
+        CHANNEL_MEMBERS.labels(channel=default_channel).set(clients_num)
     elif request_type == "WHOIS":
         client.send_whois()
     elif request_type == "JOIN":
         if len(message_parts) > 1:
             channel = message_parts[1]
-            client.send_join(channel)
-            clients_num = len([c for c in clients if channel in c.channels])
-            client.send_admin_notice(
-                channel,
-                f"welcome to {channel}, there might be about {clients_num} people connected right now",
-            )
+            if len(client.channels) > 25:
+                client.send_server_notice("Too many channels joined")
+            else:
+                client.send_join(channel)
+                clients_num = count_channel_members(channel, clients)
+                CHANNEL_MEMBERS.labels(channel=channel).set(clients_num)
+                client.send_admin_notice(
+                    channel,
+                    f"welcome to {channel}, there might be about {clients_num} people connected right now",
+                )
     elif request_type == "PART":
         if len(message_parts) > 1:
             channel = message_parts[1]
-            client.client.channels.remove(channel)
+            client.channels.remove(channel)
             client.send_part(channel)
+            clients_num = count_channel_members(channel, clients)
+            CHANNEL_MEMBERS.labels(channel=channel).set(clients_num)
     elif request_type == "PRIVMSG":
         if len(message_parts) >= 2:
             match = privmsg_regex.search(message)
@@ -193,16 +217,19 @@ def process_message(data, client, clients):
     TOTAL_REQUESTS.labels(type=request_type).inc()
 
 
-def on_client_connect(client):
+def on_client_connect(client, clients):
     addr = client.writer.get_extra_info("peername")
     print(f"{addr!r} connected")
     CLIENTS_CONNECTED.inc()
 
 
-def on_client_disconnect(client):
+def on_client_disconnect(client, clients):
     addr = client.writer.get_extra_info("peername")
     print(f"{addr!r} disconnected")
     CLIENTS_CONNECTED.dec()
+    for channel in client.channels:
+        clients_num = count_channel_members(channel, clients)
+        CHANNEL_MEMBERS.labels(channel=channel).set(clients_num)
 
 
 VERSION = make_reloadable_collector(
