@@ -158,14 +158,17 @@ def process_message(data, client, clients):
         if len(message_parts) > 1:
             token = message_parts[1]
             client.send_pong(token)
+
     elif request_type == "USER":
         client.send_welcome()
         default_channel = "#random"
         client.send_join(default_channel)
         clients_num = count_channel_members(default_channel, clients)
         CHANNEL_MEMBERS.labels(channel=default_channel).set(clients_num)
+
     elif request_type == "WHOIS":
         client.send_whois()
+
     elif request_type == "JOIN":
         if len(message_parts) > 1:
             channel = message_parts[1]
@@ -179,6 +182,7 @@ def process_message(data, client, clients):
                     channel,
                     f"welcome to {channel}, there might be about {clients_num} people connected right now",
                 )
+
     elif request_type == "PART":
         if len(message_parts) > 1:
             channel = message_parts[1]
@@ -186,6 +190,7 @@ def process_message(data, client, clients):
             client.send_part(channel)
             clients_num = count_channel_members(channel, clients)
             CHANNEL_MEMBERS.labels(channel=channel).set(clients_num)
+
     elif request_type == "PRIVMSG":
         if len(message_parts) >= 2:
             match = privmsg_regex.search(message)
@@ -198,6 +203,7 @@ def process_message(data, client, clients):
                 for c in clients:
                     if channel in c.channels and c != client.client:
                         Client(c).send_privmsg(channel, msg)
+
     elif request_type == "NOTICE":
         if len(message_parts) >= 2:
             match = notice_regex.search(message)
@@ -210,6 +216,7 @@ def process_message(data, client, clients):
                 for c in clients:
                     if channel in c.channels and c != client.client:
                         Client(c).send_notice(channel, msg)
+
     else:
         print(f"UNKNOWN request: {message}")
         request_type = "UNKNOWN"
