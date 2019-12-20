@@ -236,8 +236,8 @@ def reload(clients, current_version=None):
             .split("\n")
         )
 
-        log = [f"Server reloaded, new changes:"] + [
-            s.strip('"') for s in filter(None, log)
+        log = [f"Server reloaded with changes:"] + [
+            "  " + s.strip('"') for s in filter(None, log)
         ]
         for line in log:
             for c in clients:
