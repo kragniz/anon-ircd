@@ -66,7 +66,7 @@ class Client:
         self.write(f"PING :001", log=False)
 
     def send_pong(self, token):
-        self.write(f"PONG {token}", log=False)
+        self.write(f":anon.irc PONG anon.irc {token}", log=False)
 
     def send_whois(self):
         self.write(
@@ -161,6 +161,8 @@ def process_message(data, client, clients):
         request_type = "PING"
         if len(message_parts) > 1:
             token = message_parts[1]
+            if not token.startswith(":"):
+                token = f":{token}"
             client.send_pong(token)
 
     elif request_type == "USER":
