@@ -205,12 +205,17 @@ def process_message(data, client, clients):
 
             if match:
                 channel = match.group("channel")
-                TOTAL_MSGS.labels(channel=channel).inc()
                 msg = match.group("msg")
-                msg = exchange(msg)
-                for c in clients:
-                    if channel in c.channels and c != client.client:
-                        Client(c).send_privmsg(channel, msg)
+                if msg.startswith("\x01"):
+                    client.send_admin_notice(
+                        channel, f"don't use ctcp commands you nonce",
+                    )
+                else:
+                    TOTAL_MSGS.labels(channel=channel).inc()
+                    msg = exchange(msg)
+                    for c in clients:
+                        if channel in c.channels and c != client.client:
+                            Client(c).send_privmsg(channel, msg)
 
     elif request_type == "NOTICE":
         if len(message_parts) >= 2:
@@ -218,12 +223,18 @@ def process_message(data, client, clients):
 
             if match:
                 channel = match.group("channel")
-                TOTAL_MSGS.labels(channel=channel).inc()
                 msg = match.group("msg")
+
                 msg = exchange(msg)
-                for c in clients:
-                    if channel in c.channels and c != client.client:
-                        Client(c).send_notice(channel, msg)
+                if msg.startswith("\x01"):
+                    client.send_admin_notice(
+                        channel, f"don't use ctcp commands you nonce",
+                    )
+                else:
+                    TOTAL_MSGS.labels(channel=channel).inc()
+                    for c in clients:
+                        if channel in c.channels and c != client.client:
+                            Client(c).send_notice(channel, msg)
 
     else:
         print(f"UNKNOWN request: {message}")
