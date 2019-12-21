@@ -177,16 +177,17 @@ def process_message(data, client, clients):
     elif request_type == "JOIN":
         if len(message_parts) > 1:
             channel = message_parts[1]
-            if len(client.channels) > 25:
-                client.send_server_notice("Too many channels joined")
-            else:
-                client.send_join(channel)
-                clients_num = count_channel_members(channel, clients)
-                CHANNEL_MEMBERS.labels(channel=channel).set(clients_num)
-                client.send_admin_notice(
-                    channel,
-                    f"welcome to {channel}, there might be about {clients_num} people connected right now",
-                )
+            for channel in channel.split(","):
+                if len(client.channels) > 25:
+                    client.send_server_notice("Too many channels joined")
+                else:
+                    client.send_join(channel)
+                    clients_num = count_channel_members(channel, clients)
+                    CHANNEL_MEMBERS.labels(channel=channel).set(clients_num)
+                    client.send_admin_notice(
+                        channel,
+                        f"welcome to {channel}, there might be about {clients_num} people connected right now",
+                    )
 
     elif request_type == "PART":
         if len(message_parts) > 1:
