@@ -1,6 +1,8 @@
+import logging
+import prometheus_client
 import re
 import subprocess
-import prometheus_client
+import sys
 
 self_client_ident = "You!anon@localhost"
 anon_client_ident = "Anonymous!anon@localhost"
@@ -13,6 +15,11 @@ cyrillic_capital_o = "О"
 exchange_regex = re.compile("you", re.I)
 privmsg_regex = re.compile("PRIVMSG\s(?P<channel>.+?)\s:?(?P<msg>.+)")
 notice_regex = re.compile("NOTICE\s(?P<channel>.+?)\s:?(?P<msg>.+)")
+
+logging.basicConfig(
+    stream=sys.stdout, level=logging.DEBUG, format="%(asctime)s %(message)s"
+)
+log = logging.getLogger(__name__)
 
 
 def exchange(string: str) -> str:
@@ -38,7 +45,7 @@ def make_reloadable_collector(collector_cls, name, description, labelnames=None)
             found_collector = prometheus_client.REGISTRY._names_to_collectors.pop(name)
         prometheus_client.REGISTRY._collector_to_names.pop(found_collector)
     except KeyError:
-        print(f"couldn't unregister {name}, is it a new collector?")
+        log.info(f"couldn't unregister {name}, is it a new collector?")
     prometheus_client.REGISTRY.register(collector)
     return collector
 
@@ -57,16 +64,15 @@ class Client:
         return self.client.channels
 
     @MSG_SEND_TIME.time()
-    def write(self, string: str, log=False):
-        if log:
-            print(f"-> {string}")
+    def write(self, string: str):
+        log.debug(f"-> {string}")
         self.client.writer.write(f"{string}\r\n".encode())
 
     def send_ping(self):
-        self.write(f"PING :001", log=False)
+        self.write(f"PING :001")
 
     def send_pong(self, token):
-        self.write(f":anon.irc PONG anon.irc {token}", log=False)
+        self.write(f":anon.irc PONG anon.irc {token}")
 
     def send_whois(self):
         self.write(
@@ -237,7 +243,7 @@ def process_message(data, client, clients):
                             Client(c).send_notice(channel, msg)
 
     else:
-        print(f"UNKNOWN request: {message}")
+        log.info(f"UNKNOWN request: {message}")
         request_type = "UNKNOWN"
 
     TOTAL_REQUESTS.labels(type=request_type).inc()
@@ -245,13 +251,13 @@ def process_message(data, client, clients):
 
 def on_client_connect(client, clients):
     addr = client.writer.get_extra_info("peername")
-    print(f"{addr!r} connected")
+    log.info(f"{addr!r} connected")
     CLIENTS_CONNECTED.inc()
 
 
 def on_client_disconnect(client, clients):
     addr = client.writer.get_extra_info("peername")
-    print(f"{addr!r} disconnected")
+    log.info(f"{addr!r} disconnected")
     CLIENTS_CONNECTED.dec()
     for channel in client.channels:
         clients_num = count_channel_members(channel, clients)
