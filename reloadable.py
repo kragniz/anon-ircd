@@ -212,7 +212,7 @@ def process_message(data, client, clients):
             if match:
                 channel = match.group("channel")
                 msg = match.group("msg")
-                if msg.startswith("\x01"):
+                if msg.startswith("\x01") and not msg.startswith("\x01ACTION"):
                     client.send_admin_notice(
                         channel, f"don't use ctcp commands you nonce",
                     )
@@ -232,7 +232,7 @@ def process_message(data, client, clients):
                 msg = match.group("msg")
 
                 msg = exchange(msg)
-                if msg.startswith("\x01"):
+                if msg.startswith("\x01") and not msg.startswith("\x01ACTION"):
                     client.send_admin_notice(
                         channel, f"don't use ctcp commands you nonce",
                     )
