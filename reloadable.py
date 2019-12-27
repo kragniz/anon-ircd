@@ -173,7 +173,7 @@ def process_message(data, client, clients):
 
     elif request_type == "USER":
         client.send_welcome()
-        default_channels = {"#random", "#dev"}
+        default_channels = {"#random",}
         for channel in default_channels:
             client.send_join(channel)
             clients_num = count_channel_members(channel, clients)
