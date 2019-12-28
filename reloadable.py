@@ -161,7 +161,7 @@ def process_message(data, client, clients):
     message = data.decode().strip()
     message_parts = message.split(" ")
 
-    request_type = message_parts[0]
+    request_type = message_parts[0].upper()
 
     if request_type == "PING":
         request_type = "PING"
