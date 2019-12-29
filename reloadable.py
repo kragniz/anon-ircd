@@ -107,6 +107,7 @@ class Client:
         self.write(f":{anon_client_ident} TOPIC {channel} :{channel}")
         self.write(f":{self_client_ident} JOIN :{channel}")
         self.write(f":thewired 353 You = {channel} :You Anonymous")
+        self.write(f":thewired 366 {channel} :")
 
     def send_part(self, channel: str):
         self.write(f":{self_client_ident} PART :{channel}")
