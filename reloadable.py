@@ -115,6 +115,12 @@ class Client:
     def send_server_notice(self, msg: str):
         self.write(f":Admin NOTICE : {msg}")
 
+    def send_list(self):
+        self.write(f":thewired 321 {anon_client_ident}: Channel Users  Name")
+        self.write(f":thewired 327 {anon_client_ident} #random 0 0: #random ")
+        self.write(f":thewired 327 {anon_client_ident} #dev 0 0: #dev")
+        self.write(f":thewired 323 :")
+
 
 MESSAGE_TIME = make_reloadable_collector(
     prometheus_client.Summary,
@@ -242,6 +248,9 @@ def process_message(data, client, clients):
                     for c in clients:
                         if channel in c.channels and c != client.client:
                             Client(c).send_notice(channel, msg)
+
+    elif request_type == "LIST":
+        client.send_list()
 
     else:
         log.info(f"UNKNOWN request: {message}")
