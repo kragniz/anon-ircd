@@ -15,15 +15,16 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 1,
-  "id": 4,
+  "id": 5,
+  "iteration": 1586006687500,
   "links": [],
   "panels": [
     {
       "aliasColors": {
+        "$instance:8000": "semi-dark-purple",
         "1m-rate": "rgb(173, 77, 163)",
         "average": "rgb(255, 229, 138)",
-        "this.is.probably.a.bad.idea.kgz.sh:8000": "semi-dark-purple",
-        "{instance=\"this.is.probably.a.bad.idea.kgz.sh:8000\",job=\"anon_irc\"}": "purple"
+        "{instance=\"$instance:8000\",job=\"anon_irc\"}": "purple"
       },
       "bars": false,
       "dashLength": 10,
@@ -76,19 +77,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(message_processing_seconds_sum[1m] offset 150s)",
+          "expr": "irate(message_processing_seconds_sum{instance=\"$instance:8000\"}[1m] offset 150s)",
           "legendFormat": "1m-rate",
           "refId": "A"
         },
         {
-          "expr": "rate(message_processing_seconds_sum[5m])",
+          "expr": "rate(message_processing_seconds_sum{instance=\"$instance:8000\"}[5m])",
           "format": "time_series",
           "instant": false,
           "legendFormat": "average",
           "refId": "B"
         },
         {
-          "expr": "version_info  offset 150s",
+          "expr": "version_info{instance=\"$instance:8000\"} offset 150s",
           "legendFormat": "git {{version}}",
           "refId": "C"
         }
@@ -175,7 +176,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(messages_total[1h])",
+          "expr": "increase(messages_total{instance=\"$instance:8000\"}[1h])",
           "instant": false,
           "legendFormat": "{{channel}}",
           "refId": "A"
@@ -228,13 +229,186 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": null,
+      "fill": 3,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "hiddenSeries": false,
+      "id": 17,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "increase(messages_total{instance=\"$instance:8000\"}[1w])",
+          "instant": false,
+          "legendFormat": "{{channel}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Messages per week",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": false,
+      "colorPrefix": false,
+      "colorValue": false,
+      "colors": [
+        "#299c46",
+        "rgba(237, 129, 40, 0.89)",
+        "#d44a3a"
+      ],
+      "datasource": null,
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "id": 2,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "pluginVersion": "6.5.0",
+      "postfix": "",
+      "postfixFontSize": "200%",
+      "prefix": "",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": true,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "expr": "clients_connected{instance=\"$instance:8000\"}",
+          "legendFormat": "users",
+          "refId": "A"
+        }
+      ],
+      "thresholds": "",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Clients Connected",
+      "type": "singlestat",
+      "valueFontSize": "200%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
       "fill": 8,
       "fillGradient": 1,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 20
       },
       "hiddenSeries": false,
       "id": 15,
@@ -263,7 +437,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(requests_total[10m])",
+          "expr": "rate(requests_total{instance=\"$instance:8000\"}[10m])",
           "legendFormat": "{{type}}",
           "refId": "A"
         }
@@ -310,92 +484,6 @@
       }
     },
     {
-      "cacheTimeout": null,
-      "colorBackground": false,
-      "colorPrefix": false,
-      "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
-      "datasource": null,
-      "format": "none",
-      "gauge": {
-        "maxValue": 100,
-        "minValue": 0,
-        "show": false,
-        "thresholdLabels": false,
-        "thresholdMarkers": true
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 4,
-        "x": 0,
-        "y": 20
-      },
-      "id": 2,
-      "interval": null,
-      "links": [],
-      "mappingType": 1,
-      "mappingTypes": [
-        {
-          "name": "value to text",
-          "value": 1
-        },
-        {
-          "name": "range to text",
-          "value": 2
-        }
-      ],
-      "maxDataPoints": 100,
-      "nullPointMode": "connected",
-      "nullText": null,
-      "options": {},
-      "pluginVersion": "6.5.0",
-      "postfix": "",
-      "postfixFontSize": "200%",
-      "prefix": "",
-      "prefixFontSize": "50%",
-      "rangeMaps": [
-        {
-          "from": "null",
-          "text": "N/A",
-          "to": "null"
-        }
-      ],
-      "sparkline": {
-        "fillColor": "rgba(31, 118, 189, 0.18)",
-        "full": false,
-        "lineColor": "rgb(31, 120, 193)",
-        "show": true,
-        "ymax": null,
-        "ymin": null
-      },
-      "tableColumn": "",
-      "targets": [
-        {
-          "expr": "clients_connected",
-          "legendFormat": "users",
-          "refId": "A"
-        }
-      ],
-      "thresholds": "",
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Clients Connected",
-      "type": "singlestat",
-      "valueFontSize": "200%",
-      "valueMaps": [
-        {
-          "op": "=",
-          "text": "N/A",
-          "value": "null"
-        }
-      ],
-      "valueName": "current"
-    },
-    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -405,9 +493,9 @@
       "fillGradient": 1,
       "gridPos": {
         "h": 9,
-        "w": 20,
-        "x": 4,
-        "y": 20
+        "w": 24,
+        "x": 0,
+        "y": 28
       },
       "hiddenSeries": false,
       "id": 16,
@@ -442,7 +530,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "channel_members",
+          "expr": "channel_members{instance=\"$instance:8000\"}",
           "legendFormat": "{{channel}}",
           "refId": "A"
         }
@@ -500,7 +588,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 37
       },
       "hiddenSeries": false,
       "id": 13,
@@ -529,7 +617,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(request_error_total[5m])",
+          "expr": "rate(request_error_total{instance=\"$instance:8000\"}[5m])",
           "legendFormat": "errors",
           "refId": "A"
         }
@@ -585,107 +673,9 @@
       }
     },
     {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "fill": 3,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 38
-      },
-      "hiddenSeries": false,
-      "id": 9,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 2,
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "max_over_time(rate(message_processing_seconds_sum[30s])[5m:1s])",
-          "legendFormat": "max",
-          "refId": "A"
-        },
-        {
-          "expr": "min_over_time(rate(message_processing_seconds_sum[30s])[5m:1s])",
-          "legendFormat": "min",
-          "refId": "B"
-        },
-        {
-          "expr": "rate(message_processing_seconds_sum[5m])",
-          "legendFormat": "average",
-          "refId": "C"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Request latency",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "transparent": true,
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "s",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
       "aliasColors": {
-        "this.is.probably.a.bad.idea.kgz.sh:8000": "dark-orange",
-        "{instance=\"this.is.probably.a.bad.idea.kgz.sh:8000\",job=\"anon_irc\"}": "purple"
+        "$instance:8000": "dark-orange",
+        "{instance=\"$instance:8000\",job=\"anon_irc\"}": "purple"
       },
       "bars": false,
       "dashLength": 10,
@@ -697,7 +687,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 46
       },
       "hiddenSeries": false,
       "id": 7,
@@ -728,12 +718,12 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(msg_send_seconds_sum[30s])",
+          "expr": "irate(msg_send_seconds_sum{instance=\"$instance:8000\"}[30s])",
           "legendFormat": "irate",
           "refId": "A"
         },
         {
-          "expr": "rate(msg_send_seconds_sum[5m])",
+          "expr": "rate(msg_send_seconds_sum{instance=\"$instance:8000\"}[5m])",
           "legendFormat": "average",
           "refId": "B"
         }
@@ -781,14 +771,35 @@
     }
   ],
   "refresh": "10s",
-  "schemaVersion": 21,
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "thewired",
+          "value": "thewired"
+        },
+        "hide": 2,
+        "label": null,
+        "name": "instance",
+        "options": [
+          {
+            "selected": true,
+            "text": "thewired",
+            "value": "thewired"
+          }
+        ],
+        "query": "thewired",
+        "skipUrlSync": false,
+        "type": "constant"
+      }
+    ]
   },
   "time": {
-    "from": "now-7d",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -806,7 +817,10 @@
     ]
   },
   "timezone": "",
-  "title": "Anon IRC (public)",
+  "title": "Anon IRC",
   "uid": "ceFmE7BZk",
-  "version": 38
+  "variables": {
+    "list": []
+  },
+  "version": 4
 }
