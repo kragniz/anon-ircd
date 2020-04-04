@@ -43,18 +43,18 @@ async def handle(reader, writer):
         writer.close()
 
 
-async def irc_main():
-    server = await asyncio.start_server(handle, "0.0.0.0", 6667)
+async def irc_main(port):
+    server = await asyncio.start_server(handle, "0.0.0.0", port)
     addr = server.sockets[0].getsockname()
     print(f"serving on {addr}")
     await server.serve_forever()
 
 
-async def ssl_irc_main(fullchain, privkey):
+async def ssl_irc_main(port, fullchain, privkey):
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
     ssl_context.load_cert_chain(certfile=fullchain, keyfile=privkey)
 
-    server = await asyncio.start_server(handle, "0.0.0.0", 6697, ssl=ssl_context)
+    server = await asyncio.start_server(handle, "0.0.0.0", port, ssl=ssl_context)
     addr = server.sockets[0].getsockname()
     print(f"serving ssl on {addr}")
     await server.serve_forever()
@@ -63,18 +63,21 @@ async def ssl_irc_main(fullchain, privkey):
 parser = argparse.ArgumentParser()
 parser.add_argument("--fullchain", default=None)
 parser.add_argument("--privkey", default=None)
+parser.add_argument("--irc-port", type=int, default=6667)
+parser.add_argument("--irc-ssl-port", type=int, default=6697)
+parser.add_argument("--metrics-port", type=int, default=8000)
 
 args = parser.parse_args()
 
 loop = asyncio.get_event_loop()
-loop.create_task(irc_main())
+loop.create_task(irc_main(args.irc_port))
 
 if args.fullchain and args.privkey:
-    loop.create_task(ssl_irc_main(args.fullchain, args.privkey))
+    loop.create_task(ssl_irc_main(args.irc_ssl_port, args.fullchain, args.privkey))
 
 loop.add_signal_handler(signal.SIGHUP, reload)
 reload()
 
-start_http_server(8000)
+start_http_server(args.metrics_port)
 
 loop.run_forever()
